@@ -15,8 +15,11 @@ parser.add_argument('--BATCH_SIZE','-B' ,type=int,default=30)
 parser.add_argument('--LR','-L',type=float,default=0.01)
 args = parser.parse_args()
 
-cnn = model.CNN()
-criterion = nn.CrossEntropyLoss()
+# define device
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+cnn = model.CNN().to(device)
+criterion = nn.CrossEntropyLoss().to(device)
 optimizer = optim.SGD(cnn.parameters(), lr=args.LR)
 
 train_data = data.train_data_load()
@@ -32,6 +35,8 @@ for epoch in range(args.EPOCH):
     cnn.train()
     for index, (data, label) in enumerate(train_data):
         #print(data)
+        data = data.to(device)
+        label = label.to(device)
         optimizer.zero_grad()
         output = cnn(data)
         loss = criterion(output, label)
@@ -42,6 +47,8 @@ for epoch in range(args.EPOCH):
 
     cnn.eval()
     for index, (data, label) in enumerate(test_data) :
+        data = data.to(device)
+        label = label.to(device)
         output = cnn(data)
         _,pred = torch.max(output,1)
         accuracy = sum(pred == label)/len(label) * 100
